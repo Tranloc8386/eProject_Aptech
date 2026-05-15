@@ -14,7 +14,7 @@
             <a href="/" class="text-xl font-bold text-indigo-600">My Project</a>
             <div class="space-x-6 text-gray-600">
                 <a href="{{ route('users.index') }}" class="hover:text-indigo-600">Người dùng</a>
-                <a href="#" class="hover:text-indigo-600">Sản phẩm</a>
+                <a href="{{ route('products.index') }}" class="hover:text-indigo-600">Sản phẩm</a>
             </div>
         </div>
     </nav>
@@ -24,7 +24,7 @@
     </main>
 
     <footer class="mt-12 py-6 border-t border-gray-200 text-center text-gray-500 text-sm">
-        &copy; 2026 Developed for Maverick Dresses
+        &copy; Tran Loc dep trai cap cu tru
     </footer>
 
 </body>

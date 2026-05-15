@@ -8,9 +8,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Comment extends Model
 {
     use HasFactory;
-    protected $fillable = ['product_id', 'user_name', 'content', 'rating'];
 
-    public function product() {
+    protected $fillable = [
+        'product_id',
+        'user_id',
+        'user_name',
+        'content',
+        'rating'
+    ];
+
+    // Comment thuộc về Product
+    public function product()
+    {
         return $this->belongsTo(Product::class);
+    }
+
+    // Comment thuộc về User
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

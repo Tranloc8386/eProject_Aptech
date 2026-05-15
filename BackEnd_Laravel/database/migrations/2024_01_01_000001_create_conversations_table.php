@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('conversations', function (Blueprint $table) {
             $table->id(); // Mã định danh phòng chat [cite: 24]
             $table->foreignId('customer_id')->constrained('users'); // Khách hàng hỗ trợ [cite: 24]
-            $table->foreignId('admin_id')->nullable()->constrained('users'); // Admin phụ trách [cite: 24]
+            $table->foreignId('admin_id')->constrained('users')->onDelete('cascade');
             $table->boolean('admin_joined')->default(false); // Admin tham gia hay AI trực [cite: 24]
             $table->enum('status', ['open', 'closed', 'active'])->default('open');
             $table->timestamps();
