@@ -9,7 +9,12 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CommentController;
 
+
+Route::get('/test', function() {
+    return 'Route hoat dong!';
+});
 /*
+
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
@@ -18,9 +23,14 @@ use App\Http\Controllers\CommentController;
 // ==========================================
 // 1. Quản lý Thành viên (Users)
 // ==========================================
-Route::get('users/index', [UserController::class, 'index'])->name('users.index');
-Route::resource('users', UserController::class)->except(['index']);
 
+// 1. Định nghĩa các trang tĩnh trước
+Route::get('users/index', [UserController::class, 'index'])->name('users.index');
+Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+
+// 2. Resource cho các phần còn lại nhưng phải TRÁNH index và create ra
+// Dùng except để nó không đè lên 2 dòng trên
+Route::resource('users', UserController::class)->except(['index', 'create']);
 
 // ==========================================
 // 2. Quản lý Sản phẩm (Products) - ĐÃ SỬA LỖI UPLOAD FILE
@@ -73,3 +83,6 @@ Route::resource('admin/banners', BannerController::class)->names('banners');
 // ==========================================
 Route::get('comments/index', [CommentController::class, 'index'])->name('comments.index');
 Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+
+Route::redirect('/users', '/users/index');

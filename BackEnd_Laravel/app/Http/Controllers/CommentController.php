@@ -7,19 +7,39 @@ use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
-   // 1. Hiển thị danh sách bình luận
-    public function index() {
-        // Lấy bình luận kèm thông tin User và Product để hiển thị cho rõ
-        $comments = Comment::with(['user', 'product'])->latest()->get();
-        return view('comments.index', compact('comments'));
+    // GET /api/comments
+    public function index()
+    {
+        $comments = Comment::with(['user', 'product'])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Danh sách bình luận',
+            'data' => $comments
+        ], 200);
     }
 
-    // 2. Xóa bình luận (Dành cho Admin khi muốn gỡ bỏ comment xấu)
-    public function destroy(Comment $comment) {
+    // GET /api/comments/{id}
+    public function show(Comment $comment)
+    {
+        $comment->load(['user', 'product']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $comment
+        ], 200);
+    }
+
+    // DELETE /api/comments/{id}
+    public function destroy(Comment $comment)
+    {
         $comment->delete();
-        return back()->with('success', 'Đã xóa bình luận thành công!');
-    }
 
-    // Lưu ý: Thường không làm trang Create hay Edit cho Comment trong Admin
-    // vì Admin không nên sửa nội dung khách viết.
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa bình luận thành công!'
+        ], 200);
+    }
 }

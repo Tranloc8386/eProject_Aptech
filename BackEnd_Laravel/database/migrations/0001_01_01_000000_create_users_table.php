@@ -21,6 +21,8 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false); // Trạng thái xác minh [cite: 3]
             $table->rememberToken();
             $table->timestamps();
+            $table->string('avatar')->nullable();
+
         });
     }
 

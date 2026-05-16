@@ -7,33 +7,53 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    // Hiển thị danh sách đơn hàng
+    // GET /api/orders
     public function index()
     {
         $orders = Order::latest()->get();
-        return view('orders.index', compact('orders'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Danh sách đơn hàng',
+            'data' => $orders
+        ], 200);
     }
 
-    // Xem chi tiết đơn hàng (Dùng để demo thông tin khách và món đồ đã mua)
+    // GET /api/orders/{id}
     public function show(Order $order)
     {
-        return view('orders.show', compact('order'));
+        return response()->json([
+            'success' => true,
+            'data' => $order
+        ], 200);
     }
 
-    // Cập nhật trạng thái đơn hàng (Ví dụ: Chờ xử lý -> Đã giao)
+    // PUT/PATCH /api/orders/{id}
     public function update(Request $request, Order $order)
     {
-        $request->validate(['status' => 'required']);
+        $request->validate([
+            'status' => 'required'
+        ]);
 
-        $order->update(['status' => $request->status]);
+        $order->update([
+            'status' => $request->status
+        ]);
 
-        return back()->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật trạng thái đơn hàng thành công!',
+            'data' => $order
+        ], 200);
     }
 
-    // Xóa đơn hàng (Thường dùng cho đơn bị hủy)
+    // DELETE /api/orders/{id}
     public function destroy(Order $order)
     {
         $order->delete();
-        return redirect()->route('orders.index')->with('success', 'Đã xóa đơn hàng!');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa đơn hàng!'
+        ], 200);
     }
 }

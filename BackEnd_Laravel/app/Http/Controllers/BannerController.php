@@ -4,95 +4,180 @@ namespace App\Http\Controllers;
 
 use App\Models\Banner;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File; // Thêm thư viện này để quản lý file dễ hơn
+use Illuminate\Support\Facades\File;
 
 class BannerController extends Controller
 {
+    // =========================
+    // GET ALL BANNERS
+    // =========================
     public function index()
     {
         $banners = Banner::latest()->get();
-        return view('banners.index', compact('banners'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Danh sách banner',
+            'data' => $banners
+        ]);
     }
 
-    public function create()
-    {
-        return view('banners.create');
-    }
-
-    // 1. Hàm Lưu mới (Store)
+    // =========================
+    // CREATE BANNER
+    // =========================
     public function store(Request $request)
     {
-        // 1. Validate
+        // Validate
         $request->validate([
             'title' => 'required|max:255',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        // 2. Lấy dữ liệu (Chỉ lấy những cột thực sự có trong database của bạn)
-        $data = $request->only(['title', 'bg', 'order', 'is_active']);
+        // Lấy data
+        $data = $request->only([
+            'title',
+            'bg',
+            'order',
+            'is_active'
+        ]);
 
-        // 3. Xử lý Upload ảnh
+        // Upload image
         if ($request->hasFile('image')) {
+
             $file = $request->file('image');
+
             $filename = time() . '_' . $file->getClientOriginalName();
 
-            // Di chuyển vào public/uploads/banners như trong ảnh VS Code của bạn
-            $file->move(public_path('uploads/banners'), $filename);
+            $file->move(
+                public_path('uploads/banners'),
+                $filename
+            );
 
             $data['image'] = $filename;
         }
 
-        // 4. Lưu vào DB
-        \App\Models\Banner::create($data);
+        // Save DB
+        $banner = Banner::create($data);
 
-        return redirect()->route('banners.index')->with('success', 'Thêm banner thành công!');
-    }
-    public function edit(Banner $banner)
-    {
-        return view('banners.edit', compact('banner'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Thêm banner thành công',
+            'data' => $banner
+        ], 201);
     }
 
-    // 2. Hàm Cập nhật (Update) - Quan trọng
-    public function update(Request $request, Banner $banner)
+    // =========================
+    // SHOW ONE BANNER
+    // =========================
+    public function show($id)
     {
+        $banner = Banner::find($id);
+
+        if (!$banner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy banner'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $banner
+        ]);
+    }
+
+    // =========================
+    // UPDATE BANNER
+    // =========================
+    public function update(Request $request, $id)
+    {
+        $banner = Banner::find($id);
+
+        if (!$banner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy banner'
+            ], 404);
+        }
+
+        // Validate
         $request->validate([
             'title' => 'required|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        $data = $request->only(['title']);
+        // Data
+        $data = $request->only([
+            'title',
+            'bg',
+            'order',
+            'is_active'
+        ]);
 
+        // Upload image mới
         if ($request->hasFile('image')) {
-            // Xóa ảnh cũ nếu tồn tại trong thư mục mới
-            $oldPath = public_path('uploads/banners/' . $banner->image);
+
+            // Xóa ảnh cũ
+            $oldPath = public_path(
+                'uploads/banners/' . $banner->image
+            );
+
             if ($banner->image && File::exists($oldPath)) {
                 File::delete($oldPath);
             }
 
+            // Upload ảnh mới
             $file = $request->file('image');
+
             $filename = time() . '_' . $file->getClientOriginalName();
 
-            // Lưu ảnh mới vào thư mục mới
-            $file->move(public_path('uploads/banners'), $filename);
+            $file->move(
+                public_path('uploads/banners'),
+                $filename
+            );
+
             $data['image'] = $filename;
         }
 
+        // Update
         $banner->update($data);
 
-        return redirect()->route('banners.index')->with('success', 'Cập nhật banner thành công!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật banner thành công',
+            'data' => $banner
+        ]);
     }
 
-    // 3. Hàm Xóa (Destroy)
-    public function destroy(Banner $banner)
+    // =========================
+    // DELETE BANNER
+    // =========================
+    public function destroy($id)
     {
-        // Xóa file vật lý trước khi xóa bản ghi trong DB
-        $filePath = public_path('uploads/banners/' . $banner->image);
+        $banner = Banner::find($id);
+
+        if (!$banner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy banner'
+            ], 404);
+        }
+
+        // Xóa file ảnh
+        $filePath = public_path(
+            'uploads/banners/' . $banner->image
+        );
+
         if ($banner->image && File::exists($filePath)) {
             File::delete($filePath);
         }
 
+        // Delete DB
         $banner->delete();
-        return back()->with('success', 'Đã xóa banner hoàn toàn!');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Xóa banner thành công'
+        ]);
     }
 }
-////loc

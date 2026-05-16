@@ -8,23 +8,21 @@ use App\Models\Category;
 
 class ProductController extends Controller
 {
-    // Danh sách sản phẩm
+    // GET /api/products
     public function index()
     {
-        $products = Product::with('category')->latest()->get();
+        $products = Product::with('category')
+            ->latest()
+            ->get();
 
-        return view('products.index', compact('products'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Danh sách sản phẩm',
+            'data' => $products
+        ], 200);
     }
 
-    // Form thêm
-    public function create()
-    {
-        $categories = Category::all();
-
-        return view('products.create', compact('categories'));
-    }
-
-    // Lưu sản phẩm
+    // POST /api/products
     public function store(Request $request)
     {
         $request->validate([
@@ -39,45 +37,40 @@ class ProductController extends Controller
 
         $data['is_featured'] = $request->has('is_featured');
 
-        // Upload ảnh vào public/products
+        // Upload ảnh
         if ($request->hasFile('image')) {
 
             $file = $request->file('image');
 
-            // Tạo tên file mới tránh trùng
             $filename = time() . '_' . $file->getClientOriginalName();
 
-            // Di chuyển file vào public/products
             $file->move(public_path('products'), $filename);
 
-            // Lưu tên file vào database
             $data['image'] = $filename;
         }
 
-        Product::create($data);
+        $product = Product::create($data);
 
-        return redirect()
-            ->route('products.index')
-            ->with('success', 'Thêm sản phẩm thành công!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Thêm sản phẩm thành công!',
+            'data' => $product
+        ], 201);
     }
 
-    // Chi tiết sản phẩm
+    // GET /api/products/{id}
     public function show($id)
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with('category')
+            ->findOrFail($id);
 
-        return view('products.show', compact('product'));
+        return response()->json([
+            'success' => true,
+            'data' => $product
+        ], 200);
     }
 
-    // Form sửa
-    public function edit(Product $product)
-    {
-        $categories = Category::all();
-
-        return view('products.edit', compact('product', 'categories'));
-    }
-
-    // Cập nhật sản phẩm
+    // PUT/PATCH /api/products/{id}
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -95,7 +88,7 @@ class ProductController extends Controller
         // Upload ảnh mới
         if ($request->hasFile('image')) {
 
-            // Xóa ảnh cũ nếu tồn tại
+            // Xóa ảnh cũ
             if (
                 $product->image &&
                 file_exists(public_path('products/' . $product->image))
@@ -106,27 +99,26 @@ class ProductController extends Controller
 
             $file = $request->file('image');
 
-            // Tạo tên file mới
             $filename = time() . '_' . $file->getClientOriginalName();
 
-            // Upload vào public/products
             $file->move(public_path('products'), $filename);
 
-            // Lưu tên file
             $data['image'] = $filename;
         }
 
         $product->update($data);
 
-        return redirect()
-            ->route('products.index')
-            ->with('success', 'Cập nhật thành công!');
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật sản phẩm thành công!',
+            'data' => $product
+        ], 200);
     }
 
-    // Xóa sản phẩm
+    // DELETE /api/products/{id}
     public function destroy(Product $product)
     {
-        // Xóa file ảnh
+        // Xóa ảnh
         if (
             $product->image &&
             file_exists(public_path('products/' . $product->image))
@@ -135,12 +127,11 @@ class ProductController extends Controller
             unlink(public_path('products/' . $product->image));
         }
 
-        // Xóa database
         $product->delete();
 
-        return back()->with(
-            'success',
-            'Đã xóa sản phẩm và hình ảnh liên quan!'
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã xóa sản phẩm và hình ảnh liên quan!'
+        ], 200);
     }
 }

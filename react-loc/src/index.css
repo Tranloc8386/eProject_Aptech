@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  background: #faf8ff;
+}
+.sidebar-btn {
+  @apply flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-white transition-all;
+}
