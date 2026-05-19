@@ -2,12 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 // Import các Controller đầy đủ
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\BannerController;
-use App\Http\Controllers\CommentController;
 
 
 Route::get('/test', function() {
@@ -21,16 +20,16 @@ Route::get('/test', function() {
 */
 
 // ==========================================
-// 1. Quản lý Thành viên (Users)
+// 1. Quản lý Quản trị viên (Admins)
 // ==========================================
 
 // 1. Định nghĩa các trang tĩnh trước
-Route::get('users/index', [UserController::class, 'index'])->name('users.index');
-Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+Route::get('admins/index', [AdminController::class, 'index'])->name('admins.index');
+Route::get('admins/create', [AdminController::class, 'create'])->name('admins.create');
 
 // 2. Resource cho các phần còn lại nhưng phải TRÁNH index và create ra
 // Dùng except để nó không đè lên 2 dòng trên
-Route::resource('users', UserController::class)->except(['index', 'create']);
+Route::resource('admins', AdminController::class)->except(['index', 'create']);
 
 // ==========================================
 // 2. Quản lý Sản phẩm (Products) - ĐÃ SỬA LỖI UPLOAD FILE
@@ -78,11 +77,4 @@ Route::delete('banners/{banner}', [BannerController::class, 'destroy'])->name('b
 Route::resource('admin/banners', BannerController::class)->names('banners');
 
 
-// ==========================================
-// 6. Quản lý Bình luận (Comments)
-// ==========================================
-Route::get('comments/index', [CommentController::class, 'index'])->name('comments.index');
-Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
-
-
-Route::redirect('/users', '/users/index');
+Route::redirect('/admins', '/admins/index');

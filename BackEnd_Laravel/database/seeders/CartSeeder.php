@@ -12,14 +12,14 @@ class CartSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = \App\Models\User::all();
-        foreach ($users as $user) {
+        $customers = \App\Models\Customer::all();
+        foreach ($customers as $customer) {
             \App\Models\Cart::create([
-                'user_id' => $user->id,
-                'items' => json_encode([]), // Giỏ hàng mặc định trống hoặc demo sp
+                'customer_id'    => $customer->id,
+                'items'          => json_encode([]),
                 'total_quantity' => 0,
-                'total_price' => 0,
-                'status' => 'active',
+                'total_price'    => 0,
+                'status'         => 'active',
             ]);
         }
     }

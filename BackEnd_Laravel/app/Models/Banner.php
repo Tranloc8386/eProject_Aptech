@@ -18,7 +18,7 @@ class Banner extends Model
 
                 return filter_var($this->image, FILTER_VALIDATE_URL)
                     ? $this->image
-                    : asset('storage/' . $this->image);
+                    : asset('uploads/banners/' . $this->image);
             },
         );
     }

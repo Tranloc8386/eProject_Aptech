@@ -8,15 +8,26 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Order extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'shipping_info', 'items', 'total_amount', 'payment_method', 'status'];
-
-    protected $casts = [
-        'shipping_info' => 'array',
-        'items' => 'array',
+    protected $fillable = [
+        'customer_id',
+        'shipping_name',
+        'shipping_phone',
+        'shipping_address',
+        'note',
+        'total_amount',
+        'payment_method',
+        'status',
     ];
 
-    public function user()
+    // 1 đơn hàng có nhiều dòng sản phẩm
+    public function orderDetails()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(OrderDetail::class);
+    }
+
+    // 1 đơn hàng thuộc về 1 khách hàng
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

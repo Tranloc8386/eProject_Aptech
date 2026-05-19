@@ -17,11 +17,6 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    // Một sản phẩm có nhiều bình luận
-    public function comments() {
-        return $this->hasMany(Comment::class);
-    }
-
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
@@ -35,8 +30,8 @@ class Product extends Model
                     return $this->image;
                 }
 
-                // Nếu là ảnh upload trong máy
-                return asset('storage/' . $this->image);
+                // Nếu là ảnh upload trong máy (lưu ở public/products/)
+                return asset('products/' . $this->image);
             },
         );
     }
