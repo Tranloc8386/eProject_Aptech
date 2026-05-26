@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Order;       
+use Illuminate\Support\Facades\Log;
+use App\Models\Order;
 
 class CheckoutController extends Controller
 {
-    private $vnp_TmnCode    = "QM1JQ9W5";
-    private $vnp_HashSecret = "ED3QSVG97Z3B3QGSQ49DBQU4Z0CF6LT0";
-    private $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    private $vnp_Returnurl;
-
-    private $react_url = "http://localhost:3000";
+    private string $vnp_TmnCode    = "QM1JQ9W5";
+    private string $vnp_HashSecret = "ED3QSVG97Z3B3QGSQ49DBQU4Z0CF6LT0";
+    private string $vnp_Url        = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    private string $vnp_Returnurl  = '';
+    private string $react_url      = "http://localhost:3000";
 
     public function __construct()
     {
@@ -24,12 +24,18 @@ class CheckoutController extends Controller
     {
         date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-        $vnp_TxnRef    = time() . rand(100, 999);
-        $vnp_Amount    = $request->amount;
-        $vnp_Locale    = $request->language ?? 'vn';
-        $vnp_BankCode  = $request->bankCode ?? '';
+        $orderId       = $request->input('order_id');
+        $vnp_TxnRef    = $orderId . '_' . time();
+        $vnp_Amount    = $request->input('amount');
+        $vnp_Locale    = $request->input('language', 'vn');
+        $vnp_BankCode  = $request->input('bankCode', '');
         $vnp_IpAddr    = $request->ip();
-        $vnp_OrderInfo = 'Thanh toan don hang: ' . $vnp_TxnRef;
+        $vnp_OrderInfo = 'Thanh toan don hang: ' . $orderId;
+
+        // Lưu vnp_txn_ref vào đơn hàng để đối soát khi callback
+        if ($orderId) {
+            Order::where('id', $orderId)->update(['vnp_txn_ref' => $vnp_TxnRef]);
+        }
 
         $startTime = date('YmdHis');
         $expire    = date('YmdHis', strtotime('+15 minutes', strtotime($startTime)));
@@ -72,9 +78,9 @@ class CheckoutController extends Controller
         $vnpSecureHash = hash_hmac('sha512', $hashdata, $this->vnp_HashSecret);
         $paymentUrl    = $this->vnp_Url . "?" . $query . 'vnp_SecureHash=' . $vnpSecureHash;
 
-        \Log::info('VNPAY Debug', [
-            'hashdata'   => $hashdata,
-            'hash'       => $vnpSecureHash,
+        Log::info('VNPAY createPayment', [
+            'order_id'   => $orderId,
+            'txn_ref'    => $vnp_TxnRef,
             'paymentUrl' => $paymentUrl,
         ]);
 
@@ -88,11 +94,11 @@ class CheckoutController extends Controller
     // VNPay callback sau khi thanh toán
     public function vnpayReturn(Request $request)
     {
-        $vnp_SecureHash = $request->vnp_SecureHash;
+        $vnp_SecureHash = $request->query('vnp_SecureHash');
         $inputData = [];
 
-        foreach ($request->all() as $key => $value) {
-            if (substr($key, 0, 4) == "vnp_") {
+        foreach ($request->query() as $key => $value) {
+            if (str_starts_with($key, 'vnp_')) {
                 $inputData[$key] = $value;
             }
         }
@@ -120,17 +126,26 @@ class CheckoutController extends Controller
             ]));
         }
 
-        if ($request->vnp_ResponseCode == '00') {
+        $txnRef       = $request->query('vnp_TxnRef');
+        $responseCode = $request->query('vnp_ResponseCode');
+
+        if ($responseCode === '00') {
+            // Cập nhật payment_status của đơn hàng
+            Order::where('vnp_txn_ref', $txnRef)->update(['payment_status' => 'paid']);
+
             return redirect($this->react_url . '/vnpay-result?' . http_build_query([
                 'status'         => 'success',
                 'message'        => 'Thanh toán thành công',
-                'txn_ref'        => $request->vnp_TxnRef,
-                'amount'         => $request->vnp_Amount / 100,
-                'bank_code'      => $request->vnp_BankCode,
-                'transaction_no' => $request->vnp_TransactionNo,
-                'pay_date'       => $request->vnp_PayDate,
+                'txn_ref'        => $txnRef,
+                'amount'         => $request->query('vnp_Amount') / 100,
+                'bank_code'      => $request->query('vnp_BankCode'),
+                'transaction_no' => $request->query('vnp_TransactionNo'),
+                'pay_date'       => $request->query('vnp_PayDate'),
             ]));
         }
+
+        // Thanh toán thất bại — đánh dấu failed
+        Order::where('vnp_txn_ref', $txnRef)->update(['payment_status' => 'failed']);
 
         return redirect($this->react_url . '/vnpay-result?' . http_build_query([
             'status'  => 'failed',

@@ -14,6 +14,8 @@ import AdminFooter from "./components/admin/layout/AdminFooter";
 import AdminLogin from "./components/admin/pages/AdminLogin";
 import Dashboard  from "./components/admin/pages/Dashboard";
 import Users      from "./components/admin/pages/Users";
+import Admins     from "./components/admin/pages/Admins";
+import Customers  from "./components/admin/pages/Customers";
 import Products   from "./components/admin/pages/Products";
 import Orders     from "./components/admin/pages/Orders";
 import Feedbacks  from "./components/admin/pages/Feedbacks";
@@ -75,6 +77,8 @@ const App = () => (
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard"  element={<Dashboard />} />
         <Route path="users"      element={<Users />} />
+        <Route path="admins"     element={<Admins />} />
+        <Route path="customers"  element={<Customers />} />
         <Route path="products"   element={<Products />} />
         <Route path="orders"     element={<Orders />} />
         <Route path="feedbacks"  element={<Feedbacks />} />

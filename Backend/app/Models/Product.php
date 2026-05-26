@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 class Product extends Model
 {
     use HasFactory;
-    protected $fillable = ['category_id', 'name', 'image', 'material', 'price', 'stock_quantity', 'is_featured', 'ratings'];
+    protected $fillable = ['category_id', 'name', 'image','description', 'material', 'price', 'stock_quantity', 'is_featured', 'ratings', 'sizes'   ];
     protected $appends = ['image_url'];
 
     // Một sản phẩm thuộc về một danh mục

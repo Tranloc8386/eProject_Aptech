@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
+  UserCog,
   Package,
   ShoppingCart,
   Mail,
@@ -37,8 +38,13 @@ const Sidebar = () => {
       icon: <LayoutDashboard size={18} />,
     },
     {
-      name: "Người dùng",
-      path: "/admin/users",
+      name: "Quản trị viên",
+      path: "/admin/admins",
+      icon: <UserCog size={18} />,
+    },
+    {
+      name: "Khách hàng",
+      path: "/admin/customers",
       icon: <Users size={18} />,
     },
     {

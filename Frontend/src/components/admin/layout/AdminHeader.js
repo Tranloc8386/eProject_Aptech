@@ -68,7 +68,7 @@ const AdminHeader = () => {
     <header className="fixed top-0 left-[260px] right-0 h-16 bg-white border-b z-40 flex items-center justify-between px-6">
       {/* Left */}
       <div className="flex items-center gap-6 w-full">
-        <h2 className="text-2xl font-bold text-blue-700">AdminCentral</h2>
+        <h2 className="text-2xl font-bold text-blue-700">Trung tâm quản trị</h2>
 
         {/* Search */}
         <div className="relative w-full max-w-md" ref={dropdownRef}>

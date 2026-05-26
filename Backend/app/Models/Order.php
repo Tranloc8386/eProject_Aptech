@@ -16,6 +16,8 @@ class Order extends Model
         'note',
         'total_amount',
         'payment_method',
+        'payment_status',
+        'vnp_txn_ref',
         'status',
     ];
 

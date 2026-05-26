@@ -24,13 +24,16 @@ const Products = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    price: '',
-    stock: '',
-    category_id: '',
-    status: 'active',
+    name: "",
+    price: "",
+    stock: "",
+    category_id: "",
+    status: "active",
     is_featured: false,
-    image: null
+    image: null,
+    description: "",
+    size: "",
+    material: "",
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null); // null = Tất cả
@@ -40,25 +43,31 @@ const Products = () => {
     try {
       setLoading(true);
       const response = await apiEndpoints.products.getAll();
-      console.log('Products API Response:', response.data);
-      
+      console.log("Products API Response:", response.data);
+
       // Handle different response structures
       const productsData = response.data.data || response.data || [];
-      
+
       // Ensure each product has proper structure
-      const processedProducts = productsData.map(product => ({
+      const processedProducts = productsData.map((product) => ({
         ...product,
         // Ensure category is handled properly
-        category: typeof product.category === 'object' ? product.category : { name: product.category || 'Chưa phân loại' },
+        category:
+          typeof product.category === "object"
+            ? product.category
+            : { name: product.category || "Chưa phân loại" },
         // Ensure other fields are properly formatted
-        price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
-        stock: parseInt(product.stock_quantity ?? product.stock ?? 0)
+        price:
+          typeof product.price === "string"
+            ? parseFloat(product.price)
+            : product.price,
+        stock: parseInt(product.stock_quantity ?? product.stock ?? 0),
       }));
-      
+
       setProducts(processedProducts);
       setError(null);
     } catch (err) {
-      console.error('Error fetching products:', err);
+      console.error("Error fetching products:", err);
       setError(err.message);
       // Fallback to demo data if API fails
       setProducts([
@@ -68,7 +77,7 @@ const Products = () => {
           description: "Electronics & Accessories",
           sku: "AUD-PRO-402",
           category: { name: "Electronics" },
-          price: 249.00,
+          price: 249.0,
           stock: 156,
           status: "active",
           image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
@@ -79,11 +88,11 @@ const Products = () => {
           description: "Wearables",
           sku: "WCH-SUM-005",
           category: { name: "Electronics" },
-          price: 399.50,
+          price: 399.5,
           stock: 8,
           status: "active",
           image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-        }
+        },
       ]);
     } finally {
       setLoading(false);
@@ -97,7 +106,7 @@ const Products = () => {
       const categoriesData = response.data.data || response.data || [];
       setCategories(categoriesData);
     } catch (err) {
-      console.error('Error fetching categories:', err);
+      console.error("Error fetching categories:", err);
     }
   };
 
@@ -105,8 +114,8 @@ const Products = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({...formData, image: file});
-      
+      setFormData({ ...formData, image: file });
+
       // Create preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -118,7 +127,18 @@ const Products = () => {
 
   // Reset form
   const resetForm = () => {
-    setFormData({ name: '', price: '', stock: '', category_id: '', status: 'active', is_featured: false, image: null });
+    setFormData({
+      name: "",
+      price: "",
+      stock: "",
+      category_id: "",
+      status: "active",
+      is_featured: false,
+      image: null,
+      description: "",
+      size: "",
+      material: "",
+    });
     setImagePreview(null);
   };
 
@@ -128,24 +148,27 @@ const Products = () => {
     try {
       // Create FormData for file upload
       const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('price', parseFloat(formData.price));
-      formDataToSend.append('stock_quantity', parseInt(formData.stock));
-      formDataToSend.append('category_id', formData.category_id);
-      formDataToSend.append('status', formData.status);
-      formDataToSend.append('is_featured', formData.is_featured ? 1 : 0);
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("price", parseFloat(formData.price));
+      formDataToSend.append("stock_quantity", parseInt(formData.stock));
+      formDataToSend.append("category_id", formData.category_id);
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("is_featured", formData.is_featured ? 1 : 0);
+      formDataToSend.append("description", formData.description || "");
+      formDataToSend.append("size", formData.size || "");
+      formDataToSend.append("material", formData.material || "");
       if (formData.image) {
-        formDataToSend.append('image', formData.image);
+        formDataToSend.append("image", formData.image);
       }
 
       const response = await apiEndpoints.products.create(formDataToSend);
-      console.log('Product created:', response.data);
+      console.log("Product created:", response.data);
       await fetchProducts(); // Refresh list
       setShowAddModal(false);
       resetForm();
     } catch (err) {
-      console.error('Error creating product:', err);
-      alert('Error creating product: ' + err.message);
+      console.error("Error creating product:", err);
+      alert("Error creating product: " + err.message);
     }
   };
 
@@ -154,40 +177,47 @@ const Products = () => {
     e.preventDefault();
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('price', parseFloat(formData.price));
-      formDataToSend.append('stock_quantity', parseInt(formData.stock));
-      formDataToSend.append('category_id', formData.category_id);
-      formDataToSend.append('status', formData.status);
-      formDataToSend.append('is_featured', formData.is_featured ? 1 : 0);
-      formDataToSend.append('_method', 'PUT');
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("price", parseFloat(formData.price));
+      formDataToSend.append("stock_quantity", parseInt(formData.stock));
+      formDataToSend.append("category_id", formData.category_id);
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("is_featured", formData.is_featured ? 1 : 0);
+      formDataToSend.append("description", formData.description || "");
+      formDataToSend.append("size", formData.size || "");
+      formDataToSend.append("material", formData.material || "");
+      formDataToSend.append("_method", "PUT");
       if (formData.image) {
-        formDataToSend.append('image', formData.image);
+        formDataToSend.append("image", formData.image);
       }
 
-      const response = await apiEndpoints.products.update(editingProduct.id, formDataToSend);
-      console.log('Product updated:', response.data);
+      const response = await apiEndpoints.products.update(
+        editingProduct.id,
+        formDataToSend,
+      );
+      console.log("Product updated:", response.data);
       await fetchProducts();
       setShowEditModal(false);
       setEditingProduct(null);
       resetForm();
     } catch (err) {
-      console.error('Error updating product:', err);
-      alert('Error updating product: ' + err.message);
+      console.error("Error updating product:", err);
+      alert("Error updating product: " + err.message);
     }
   };
 
   // Delete product
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
+
     try {
       await apiEndpoints.products.delete(id);
-      console.log('Product deleted');
+      console.log("Product deleted");
       await fetchProducts(); // Refresh list
     } catch (err) {
-      console.error('Error deleting product:', err);
-      alert('Error deleting product: ' + err.message);
+      console.error("Error deleting product:", err);
+      alert("Error deleting product: " + err.message);
     }
   };
 
@@ -196,13 +226,19 @@ const Products = () => {
     setEditingProduct(product);
     setImagePreview(null);
     setFormData({
-      name: product.name || '',
-      price: product.price?.toString() || '',
-      stock: product.stock?.toString() || '',
-      category_id: product.category?.id?.toString() || product.category_id?.toString() || '',
-      status: product.status || 'active',
+      name: product.name || "",
+      price: product.price?.toString() || "",
+      stock: product.stock?.toString() || "",
+      category_id:
+        product.category?.id?.toString() ||
+        product.category_id?.toString() ||
+        "",
+      status: product.status || "active",
       is_featured: !!product.is_featured,
-      image: null
+      image: null,
+      description: product.description || "",
+      size: product.size || "",
+      material: product.material || "",
     });
     setShowEditModal(true);
   };
@@ -213,28 +249,44 @@ const Products = () => {
   }, []);
 
   const filteredProducts = products.filter((p) => {
-    if (selectedCategory !== null && p.category?.id !== selectedCategory) return false;
+    if (selectedCategory !== null && p.category?.id !== selectedCategory)
+      return false;
     return true;
   });
 
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const getImageUrl = (product) => {
     if (product?.image_url) return product.image_url;
     const image = product?.image;
-    if (!image) return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e";
-    if (image.startsWith('http')) return image;
+    if (!image)
+      return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e";
+    if (image.startsWith("http")) return image;
     return `http://127.0.0.1:8000/products/${image}`;
   };
 
   // Helper function to get stock status
   const getStockStatus = (stock) => {
-    if (stock === 0) return { status: 'Hết hàng', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-500' };
-    if (stock < 10) return { status: 'Sắp hết', color: 'bg-red-100 text-red-600', dot: 'bg-red-500' };
-    return { status: 'Còn hàng', color: 'bg-green-100 text-green-600', dot: 'bg-green-500' };
+    if (stock === 0)
+      return {
+        status: "Hết hàng",
+        color: "bg-gray-100 text-gray-600",
+        dot: "bg-gray-500",
+      };
+    if (stock < 10)
+      return {
+        status: "Sắp hết",
+        color: "bg-red-100 text-red-600",
+        dot: "bg-red-500",
+      };
+    return {
+      status: "Còn hàng",
+      color: "bg-green-100 text-green-600",
+      dot: "bg-green-500",
+    };
   };
 
   if (loading) {
@@ -317,7 +369,7 @@ const Products = () => {
             <p className="text-sm text-gray-500">Sắp hết hàng</p>
 
             <h2 className="text-3xl font-bold text-gray-800">
-              {products.filter(p => p.stock > 0 && p.stock < 10).length}
+              {products.filter((p) => p.stock > 0 && p.stock < 10).length}
             </h2>
           </div>
         </div>
@@ -328,9 +380,7 @@ const Products = () => {
           </div>
 
           <div>
-            <p className="text-sm text-gray-500">
-              Danh mục
-            </p>
+            <p className="text-sm text-gray-500">Danh mục</p>
 
             <h2 className="text-3xl font-bold text-gray-800">
               {categories.length}
@@ -347,9 +397,16 @@ const Products = () => {
             <p className="text-sm text-gray-500">Tổng giá trị</p>
 
             <h2 className="text-3xl font-bold text-gray-800">
-              {new Intl.NumberFormat("vi-VN", { notation: "compact", compactDisplay: "short" }).format(
-                products.reduce((sum, p) => sum + (p.price || 0) * (p.stock || 0), 0)
-              )} ₫
+              {new Intl.NumberFormat("vi-VN", {
+                notation: "compact",
+                compactDisplay: "short",
+              }).format(
+                products.reduce(
+                  (sum, p) => sum + (p.price || 0) * (p.stock || 0),
+                  0,
+                ),
+              )}{" "}
+              ₫
             </h2>
           </div>
         </div>
@@ -361,11 +418,14 @@ const Products = () => {
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <div className="flex gap-6 overflow-x-auto">
             <button
-              onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}
+              onClick={() => {
+                setSelectedCategory(null);
+                setCurrentPage(1);
+              }}
               className={`pb-2 font-semibold whitespace-nowrap transition ${
                 selectedCategory === null
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-black'
+                  ? "text-blue-600 border-b-2 border-blue-600"
+                  : "text-gray-500 hover:text-black"
               }`}
             >
               Tất cả ({products.length})
@@ -373,31 +433,34 @@ const Products = () => {
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
+                onClick={() => {
+                  setSelectedCategory(cat.id);
+                  setCurrentPage(1);
+                }}
                 className={`pb-2 font-semibold whitespace-nowrap transition ${
                   selectedCategory === cat.id
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-black'
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 hover:text-black"
                 }`}
               >
-                {cat.name} ({products.filter(p => p.category?.id === cat.id).length})
+                {cat.name} (
+                {products.filter((p) => p.category?.id === cat.id).length})
               </button>
             ))}
           </div>
-
         </div>
 
         {/* TABLE */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr className="text-left text-xs uppercase text-gray-500">
-                <th className="p-4">Sản phẩm</th>
-                <th className="p-4 w-32">Danh mục</th>
-                <th className="p-4 w-36 text-right">Giá</th>
-                <th className="p-4 w-24 text-right">Tồn kho</th>
-                <th className="p-4 w-32">Trạng thái</th>
-                <th className="p-4 w-24 text-center">Thao tác</th>
+        <div>
+          <table className="w-full table-fixed">
+            <thead className="bg-gray-50 border-b text-xs uppercase text-gray-500">
+              <tr className="text-left">
+                <th className="px-4 py-3 w-[35%]">Sản phẩm</th>
+                <th className="px-4 py-3 w-[15%]">Danh mục</th>
+                <th className="px-4 py-3 w-[15%] text-right">Giá</th>
+                <th className="px-4 py-3 w-[8%] text-right">Tồn kho</th>
+                <th className="px-4 py-3 w-[15%]">Trạng thái</th>
+                <th className="px-4 py-3 w-[12%] text-right">Thao tác</th>
               </tr>
             </thead>
 
@@ -405,70 +468,60 @@ const Products = () => {
               {paginatedProducts.map((product) => {
                 const stockStatus = getStockStatus(product.stock || 0);
                 return (
-                <tr
-                  key={product.id}
-                  className="border-b border-gray-200 hover:bg-gray-50 transition"
-                >
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getImageUrl(product)}
-                        alt={product.name}
-                        className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <h3 className="font-semibold text-gray-800 truncate">
-                          {product.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 truncate">
-                          {product.description || product.desc || 'Không có mô tả'}
-                        </p>
+                  <tr key={product.id} className="border-b hover:bg-gray-50 transition">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={getImageUrl(product)}
+                          alt={product.name}
+                          className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-gray-900 truncate">{product.name}</h4>
+                          <p className="text-xs text-gray-400 truncate">
+                            {product.description || "Không có mô tả"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="p-4">
-                    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-md text-sm whitespace-nowrap">
-                      {product.category?.name || 'Chưa phân loại'}
-                    </span>
-                  </td>
-
-                  <td className="p-4 text-right font-semibold text-gray-800 whitespace-nowrap">
-                    {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(product.price || 0)}
-                  </td>
-
-                  <td className="p-4 text-right text-gray-700">
-                    {product.stock || 0}
-                  </td>
-
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stockStatus.dot}`}></span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${stockStatus.color}`}>
-                        {stockStatus.status}
+                    <td className="px-4 py-3">
+                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-xs">
+                        {product.category?.name || "Chưa phân loại"}
                       </span>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="p-4">
-                    <div className="flex items-center justify-center gap-3">
-                      <button
-                        onClick={() => openEditModal(product)}
-                        title="Sửa"
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                      >
-                        <Edit size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        title="Xóa"
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-700 text-sm">
+                      {new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      }).format(product.price || 0)}
+                    </td>
+
+                    <td className="px-4 py-3 text-right text-gray-700 text-sm">
+                      {product.stock || 0}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stockStatus.dot}`}></span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${stockStatus.color}`}>
+                          {stockStatus.status}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => openEditModal(product)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-600">
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(product.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
@@ -491,11 +544,15 @@ const Products = () => {
             <h2 className="text-xl font-bold mb-4">Thêm sản phẩm mới</h2>
             <form onSubmit={handleCreate}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tên sản phẩm</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên sản phẩm
+                </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -509,7 +566,9 @@ const Products = () => {
                     type="number"
                     step="0.01"
                     value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
@@ -521,7 +580,9 @@ const Products = () => {
                   <input
                     type="number"
                     value={formData.stock}
-                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, stock: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
@@ -534,12 +595,16 @@ const Products = () => {
                   </label>
                   <select
                     value={formData.category_id}
-                    onChange={(e) => setFormData({...formData, category_id: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category_id: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Chọn danh mục</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -549,7 +614,9 @@ const Products = () => {
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="active">Hoạt động</option>
@@ -558,14 +625,64 @@ const Products = () => {
                 </div>
               </div>
               <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mô tả sản phẩm
+                </label>
+                <textarea
+                  rows={4}
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Nhập mô tả sản phẩm..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Chất liệu</label>
+                  <input
+                    type="text"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="VD: Cotton, Linen..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                  <select
+                    value={formData.size}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">-- Không có size --</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-4">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={formData.is_featured}
-                    onChange={(e) => setFormData({...formData, is_featured: e.target.checked})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        is_featured: e.target.checked,
+                      })
+                    }
                     className="w-4 h-4 accent-blue-600 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">Sản phẩm nổi bật</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Sản phẩm nổi bật
+                  </span>
                 </label>
               </div>
               <div className="mb-6">
@@ -583,9 +700,13 @@ const Products = () => {
                   <label className="flex-1 cursor-pointer">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 hover:bg-blue-50 transition">
                       <p className="text-sm text-gray-500">
-                        {imagePreview ? 'Nhấn để thay ảnh' : 'Nhấn để tải ảnh lên'}
+                        {imagePreview
+                          ? "Nhấn để thay ảnh"
+                          : "Nhấn để tải ảnh lên"}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">PNG, JPG, JPEG (tối đa 2MB)</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        PNG, JPG, JPEG (tối đa 2MB)
+                      </p>
                     </div>
                     <input
                       type="file"
@@ -626,11 +747,15 @@ const Products = () => {
             <h2 className="text-xl font-bold mb-4">Chỉnh sửa sản phẩm</h2>
             <form onSubmit={handleUpdate}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tên sản phẩm</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên sản phẩm
+                </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -644,7 +769,9 @@ const Products = () => {
                     type="number"
                     step="0.01"
                     value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
@@ -656,7 +783,9 @@ const Products = () => {
                   <input
                     type="number"
                     value={formData.stock}
-                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, stock: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
@@ -669,12 +798,16 @@ const Products = () => {
                   </label>
                   <select
                     value={formData.category_id}
-                    onChange={(e) => setFormData({...formData, category_id: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category_id: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Chọn danh mục</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -684,7 +817,9 @@ const Products = () => {
                   </label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="active">Hoạt động</option>
@@ -693,14 +828,58 @@ const Products = () => {
                 </div>
               </div>
               <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả sản phẩm</label>
+                <textarea
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                  placeholder="Nhập mô tả sản phẩm..."
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Chất liệu</label>
+                  <input
+                    type="text"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="VD: Cotton, Linen..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
+                  <select
+                    value={formData.size}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">-- Không có size --</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mb-4">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={formData.is_featured}
-                    onChange={(e) => setFormData({...formData, is_featured: e.target.checked})}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        is_featured: e.target.checked,
+                      })
+                    }
                     className="w-4 h-4 accent-blue-600 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">Sản phẩm nổi bật</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    Sản phẩm nổi bật
+                  </span>
                 </label>
               </div>
               <div className="mb-6">
@@ -718,9 +897,13 @@ const Products = () => {
                   <label className="flex-1 cursor-pointer">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 hover:bg-blue-50 transition">
                       <p className="text-sm text-gray-500">
-                        {imagePreview ? 'Nhấn để thay ảnh' : 'Nhấn để tải ảnh mới'}
+                        {imagePreview
+                          ? "Nhấn để thay ảnh"
+                          : "Nhấn để tải ảnh mới"}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">PNG, JPG, JPEG (tối đa 2MB)</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        PNG, JPG, JPEG (tối đa 2MB)
+                      </p>
                     </div>
                     <input
                       type="file"

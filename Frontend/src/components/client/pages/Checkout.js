@@ -83,7 +83,7 @@ const Checkout = () => {
         const vnpRes = await fetch(`${API}/vnpay-payment`, {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: total }),
+          body: JSON.stringify({ order_id: orderId, amount: total }),
         });
         const vnpData = await vnpRes.json();
         if (vnpData.payment_url) {

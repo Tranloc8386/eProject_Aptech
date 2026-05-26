@@ -51,7 +51,7 @@ const Contact = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
 
-      // Tiêu đề
+    
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-[#2c2c2c] tracking-wide">Liên hệ</h1>
         <p className="text-[#888] mt-2 text-sm">Chúng tôi luôn sẵn sàng hỗ trợ bạn</p>
@@ -82,7 +82,7 @@ const Contact = () => {
                 <Mail size={20} className="text-[#8b4513] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-[#2c2c2c]">Email</p>
-                  <p className="text-sm text-[#666]">tranhuuloc@shop.vn</p>
+                  <p className="text-sm text-[#666]">aptech@shop.vn</p>
                 </div>
               </div>
             </div>

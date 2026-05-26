@@ -5,17 +5,20 @@ import { ShoppingCart, ArrowLeft, Plus, Minus, Check } from "lucide-react";
 const API = "http://localhost:8000/api";
 
 const formatPrice = (price) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+    price,
+  );
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [product,  setProduct]  = useState(null);
-  const [related,  setRelated]  = useState([]);
+  const [product, setProduct] = useState(null);
+  const [related, setRelated] = useState([]);
   const [quantity, setQuantity] = useState(1);
-  const [loading,  setLoading]  = useState(true);
-  const [added,    setAdded]    = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [added, setAdded] = useState(false);
+  const [selectedSize, setSelectedSize] = useState("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,7 +30,7 @@ const ProductDetail = () => {
           fetch(`${API}/products/${id}`),
           fetch(`${API}/products`),
         ]);
-        const pData   = await pRes.json();
+        const pData = await pRes.json();
         const allData = await allRes.json();
 
         const p = pData.data;
@@ -47,17 +50,22 @@ const ProductDetail = () => {
   }, [id]);
 
   const addToCart = () => {
+    if (!selectedSize) {
+      alert("Vui lòng chọn size!");
+      return;
+    }
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const idx  = cart.findIndex((i) => i.product_id === product.id);
+    const idx = cart.findIndex((i) => i.product_id === product.id);
     if (idx >= 0) {
       cart[idx].quantity += quantity;
     } else {
       cart.push({
         product_id: product.id,
-        name:       product.name,
-        price:      product.price,
-        image:      product.image_url,
+        name: product.name,
+        price: product.price,
+        image: product.image_url,
         quantity,
+        size: selectedSize,
       });
     }
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -71,47 +79,64 @@ const ProductDetail = () => {
     navigate("/cart");
   };
 
-  if (loading) return (
-    <div className="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-10">
-      <div className="aspect-square bg-gray-200 rounded-2xl animate-pulse" />
-      <div className="space-y-4 pt-4">
-        {[80, 60, 40, 70, 50].map((w, i) => (
-          <div key={i} className="h-5 bg-gray-200 rounded-full animate-pulse" style={{ width: `${w}%` }} />
-        ))}
+  if (loading)
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="aspect-square bg-gray-200 rounded-2xl animate-pulse" />
+        <div className="space-y-4 pt-4">
+          {[80, 60, 40, 70, 50].map((w, i) => (
+            <div
+              key={i}
+              className="h-5 bg-gray-200 rounded-full animate-pulse"
+              style={{ width: `${w}%` }}
+            />
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  if (!product) return (
-    <div className="text-center py-24 text-[#aaa]">
-      <p className="text-5xl mb-4">😕</p>
-      <p className="text-base font-medium text-[#888]">Không tìm thấy sản phẩm.</p>
-      <Link to="/products" className="mt-4 inline-block text-[#8b4513] hover:underline text-sm">← Quay lại</Link>
-    </div>
-  );
+  if (!product)
+    return (
+      <div className="text-center py-24 text-[#aaa]">
+        <p className="text-5xl mb-4">😕</p>
+        <p className="text-base font-medium text-[#888]">
+          Không tìm thấy sản phẩm.
+        </p>
+        <Link
+          to="/products"
+          className="mt-4 inline-block text-[#8b4513] hover:underline text-sm"
+        >
+          ← Quay lại
+        </Link>
+      </div>
+    );
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
-
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-[#aaa] mb-8">
-        <Link to="/" className="hover:text-[#1a1a1a] transition-colors">Trang chủ</Link>
+        <Link to="/" className="hover:text-[#1a1a1a] transition-colors">
+          Trang chủ
+        </Link>
         <span>/</span>
-        <Link to="/products" className="hover:text-[#1a1a1a] transition-colors">Sản phẩm</Link>
+        <Link to="/products" className="hover:text-[#1a1a1a] transition-colors">
+          Sản phẩm
+        </Link>
         <span>/</span>
         <span className="text-[#1a1a1a] line-clamp-1">{product.name}</span>
       </nav>
 
       {/* Nội dung chính */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
-
         {/* Ảnh */}
         <div className="aspect-square bg-gray-100 rounded-3xl overflow-hidden shadow-sm">
           <img
             src={product.image_url}
             alt={product.name}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-            onError={(e) => { e.target.src = "https://placehold.co/600x600?text=No+Image"; }}
+            onError={(e) => {
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
           />
         </div>
 
@@ -139,13 +164,17 @@ const ProductDetail = () => {
             {product.material && (
               <div className="flex gap-2">
                 <span className="text-[#aaa] w-24 shrink-0">Chất liệu</span>
-                <span className="font-medium text-[#1a1a1a]">{product.material}</span>
+                <span className="font-medium text-[#1a1a1a]">
+                  {product.material}
+                </span>
               </div>
             )}
             <div className="flex gap-2">
               <span className="text-[#aaa] w-24 shrink-0">Tình trạng</span>
               {product.stock_quantity > 0 ? (
-                <span className="font-medium text-green-600">Còn hàng ({product.stock_quantity})</span>
+                <span className="font-medium text-green-600">
+                  Còn hàng ({product.stock_quantity})
+                </span>
               ) : (
                 <span className="font-medium text-red-500">Hết hàng</span>
               )}
@@ -166,11 +195,32 @@ const ProductDetail = () => {
                 {quantity}
               </span>
               <button
-                onClick={() => setQuantity((q) => Math.min(product.stock_quantity, q + 1))}
+                onClick={() =>
+                  setQuantity((q) => Math.min(product.stock_quantity, q + 1))
+                }
                 className="px-4 py-2.5 hover:bg-[#faf8f5] transition-colors text-[#4a4a4a]"
               >
                 <Plus size={14} />
               </button>
+            </div>
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <span className="text-[#aaa] w-24 shrink-0 text-sm">Size</span>
+            <div className="flex gap-2">
+              {["S", "M", "L", "XL", "XXL"].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSelectedSize(s)}
+                  className={`w-10 h-10 rounded-xl border text-sm font-medium transition-all ${
+                    selectedSize === s
+                      ? "border-[#1a1a1a] bg-[#1a1a1a] text-white"
+                      : "border-[#e8e0d5] text-[#4a4a4a] hover:border-[#1a1a1a]"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -205,25 +255,51 @@ const ProductDetail = () => {
           </button>
         </div>
       </div>
+      {/* Mô tả sản phẩm */}
+      {product.description && (
+        <section className="mb-16">
+          <h2 className="font-display text-2xl font-bold text-[#1a1a1a] mb-4">
+            Mô tả sản phẩm
+          </h2>
+          <div className="border-t border-[#f0ebe3] pt-6">
+            <p className="text-sm text-[#4a4a4a] leading-relaxed whitespace-pre-line">
+              {product.description}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* Sản phẩm liên quan */}
       {related.length > 0 && (
         <section>
-          <h2 className="font-display text-2xl font-bold text-[#1a1a1a] mb-6">Sản phẩm liên quan</h2>
+          <h2 className="font-display text-2xl font-bold text-[#1a1a1a] mb-6">
+            Sản phẩm liên quan
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {related.map((p) => (
-              <Link key={p.id} to={`/products/${p.id}`} className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
+              <Link
+                key={p.id}
+                to={`/products/${p.id}`}
+                className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500"
+              >
                 <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
                   <img
                     src={p.image_url}
                     alt={p.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    onError={(e) => { e.target.src = "https://placehold.co/300x400?text=No+Image"; }}
+                    onError={(e) => {
+                      e.target.src =
+                        "https://placehold.co/300x400?text=No+Image";
+                    }}
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-sm font-medium text-[#1a1a1a] line-clamp-1 mb-1">{p.name}</h3>
-                  <p className="text-sm font-bold text-[#8b4513]">{formatPrice(p.price)}</p>
+                  <h3 className="text-sm font-medium text-[#1a1a1a] line-clamp-1 mb-1">
+                    {p.name}
+                  </h3>
+                  <p className="text-sm font-bold text-[#8b4513]">
+                    {formatPrice(p.price)}
+                  </p>
                 </div>
               </Link>
             ))}
